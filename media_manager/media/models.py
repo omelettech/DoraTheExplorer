@@ -8,7 +8,7 @@ class Tag(models.Model):
 
 class MediaFile(models.Model):
     name = models.CharField(max_length=255)
-    file = models.FileField(upload_to='media/')
+    file = models.CharField(max_length=450,unique=True)
     tags = models.ManyToManyField(Tag, related_name='media_files')
     actors = models.ManyToManyField(Actor, related_name='media_files')
     date_added = models.DateTimeField(auto_now_add=True)

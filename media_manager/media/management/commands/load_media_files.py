@@ -2,7 +2,7 @@
 
 import os
 from django.core.management.base import BaseCommand
-from media_manager.media.models import MediaFile
+from media.models import MediaFile
 
 
 class Command(BaseCommand):
@@ -22,5 +22,12 @@ class Command(BaseCommand):
                     relative_path = os.path.relpath(file_path, directory)
                     media_name = os.path.basename(file_path)
 
-                    MediaFile.objects.create(name=media_name, file_path=relative_path)
-                    self.stdout.write(self.style.SUCCESS(f'Added: {file_path}'))
+                    # Check if the media file already exists
+                    if not MediaFile.objects.filter(file_path=relative_path).exists():
+                        MediaFile.objects.create(
+                            name=media_name,
+                            file_path=relative_path
+                        )
+                        self.stdout.write(self.style.SUCCESS(f'Added: {file_path}'))
+                    else:
+                        self.stdout.write(self.style.WARNING(f'Skipped (already exists): {file_path}'))

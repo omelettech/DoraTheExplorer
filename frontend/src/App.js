@@ -1,49 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { getMediaFiles, getTags, getActors } from './services/mediaService';
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import MediaLayout from './pages/MediaLayout';
 import './App.css';
 
 function App() {
-    const [mediaFiles, setMediaFiles] = useState([]);
-    const [tags, setTags] = useState([]);
-    const [actors, setActors] = useState([]);
-
-    useEffect(() => {
-        fetchMediaFiles();
-        fetchTags();
-        fetchActors();
-    }, []);
-
-    const fetchMediaFiles = async () => {
-        const response = await getMediaFiles();
-        setMediaFiles(response.data);
-    };
-
-    const fetchTags = async () => {
-        const response = await getTags();
-        setTags(response.data);
-    };
-
-    const fetchActors = async () => {
-        const response = await getActors();
-        setActors(response.data);
-    };
-
     return (
-        <div className="App">
-            <header className="App-header">
-                <h1>Media Manager</h1>
-            </header>
-            <div className="media-list">
-                {mediaFiles.map(media => (
-                    <div key={media.id} className="media-item">
-                        <h2>{media.name}</h2>
-                        <p>Tags: {media.tags.map(tag => tag.name).join(', ')}</p>
-                        <p>Actors: {media.actors.map(actor => actor.name).join(', ')}</p>
-                        <img src={media.file} alt={media.name} />
-                    </div>
-                ))}
+        <Router>
+            <div className="App">
+                <header className="App-header">
+                    <nav>
+                        <Link to="/">Home</Link> | <Link to="/media">Media Player</Link>
+                    </nav>
+                </header>
+                <Routes>
+                    <Route path="/media" element={<MediaLayout/>} />
+                    <Route path="/" component={HomePage} />
+                </Routes>
             </div>
-        </div>
+        </Router>
     );
 }
 
