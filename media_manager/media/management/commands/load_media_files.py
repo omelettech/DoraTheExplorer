@@ -23,10 +23,10 @@ class Command(BaseCommand):
                     media_name = os.path.basename(file_path)
 
                     # Check if the media file already exists
-                    if not MediaFile.objects.filter(file_path=relative_path).exists():
+                    if not MediaFile.objects.filter(file=relative_path).exists():
                         MediaFile.objects.create(
                             name=media_name,
-                            file_path=relative_path
+                            file=relative_path
                         )
                         self.stdout.write(self.style.SUCCESS(f'Added: {file_path}'))
                     else:

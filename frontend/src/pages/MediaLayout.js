@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import Select from 'react-select';
+import React, {useState, useEffect} from 'react';
+import MediaPlayer from '../components/MediaPlayer';
+import Sidebar from '../components/Sidebar';
+import TagActorManager from '../components/TagActorManager';
+import '../App.css';
+import '../components/Sidebar.css'; // Import the Sidebar CSS here
+import CreatableSelect from 'react-select/creatable';
 import {
     getMediaFiles,
     getTags,
@@ -7,13 +12,11 @@ import {
     addTagToMediaFile,
     removeTagFromMediaFile,
     addActorToMediaFile,
-    removeActorFromMediaFile
+    removeActorFromMediaFile,
+    getDirectoryStructure
 } from '../services/mediaService';
-import '../App.css';
 
-const EXTERNAL_MEDIA_URL = 'http://127.0.0.1:8000/external_media/';
-
-function MediaLayout() {
+const MediaLayout = () => {
     const [mediaFiles, setMediaFiles] = useState([]);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,11 +24,13 @@ function MediaLayout() {
     const [actors, setActors] = useState([]);
     const [selectedTag, setSelectedTag] = useState(null);
     const [selectedActor, setSelectedActor] = useState(null);
+    const [directoryStructure, setDirectoryStructure] = useState({});
 
     useEffect(() => {
         fetchMediaFiles();
         fetchTags();
         fetchActors();
+        fetchDirectoryStructure();
     }, []);
 
     const fetchMediaFiles = async () => {
@@ -40,7 +45,7 @@ function MediaLayout() {
     const fetchTags = async () => {
         try {
             const response = await getTags();
-            setTags(response.data.map(tag => ({ label: tag.name, value: tag.name })));
+            setTags(response.data.map(tag => ({label: tag.name, value: tag.name})));
         } catch (error) {
             console.error("Error fetching tags:", error);
         }
@@ -49,46 +54,41 @@ function MediaLayout() {
     const fetchActors = async () => {
         try {
             const response = await getActors();
-            setActors(response.data.map(actor => ({ label: actor.name, value: actor.name })));
+            setActors(response.data.map(actor => ({label: actor.name, value: actor.name})));
         } catch (error) {
             console.error("Error fetching actors:", error);
         }
     };
 
+    const fetchDirectoryStructure = async () => {
+        try {
+            const response = await getDirectoryStructure();
+            setDirectoryStructure(response.data);
+        } catch (error) {
+            console.error("Error fetching directory structure:", error);
+        }
+    };
+
     const handleMediaClick = (media) => {
+        console.log(media)
         setSelectedMedia(media);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-    };
-
-    const handleTagChange = (selectedOption) => {
-        setSelectedTag(selectedOption);
-    };
-
-    const handleActorChange = (selectedOption) => {
-        setSelectedActor(selectedOption);
-    };
-
-    const handleAddTag = async () => {
-        if (selectedMedia && selectedTag) {
+    const handleAddTag = async (tagName) => {
+        if (selectedMedia) {
             try {
-                console.log("Adding tag:", selectedTag.value, "to media file:", selectedMedia.id);
-                await addTagToMediaFile(selectedMedia.id, selectedTag.value);
+                await addTagToMediaFile(selectedMedia.id, tagName);
                 fetchMediaFiles();
-                setSelectedTag(null);
             } catch (error) {
                 console.error("Error adding tag:", error);
             }
         }
     };
 
-    const handleRemoveTag = async (tagToRemove) => {
+    const handleRemoveTag = async (tagName) => {
         if (selectedMedia) {
             try {
-                console.log("Removing tag:", tagToRemove, "from media file:", selectedMedia.id);
-                await removeTagFromMediaFile(selectedMedia.id, tagToRemove);
+                await removeTagFromMediaFile(selectedMedia.id, tagName);
                 fetchMediaFiles();
             } catch (error) {
                 console.error("Error removing tag:", error);
@@ -96,24 +96,21 @@ function MediaLayout() {
         }
     };
 
-    const handleAddActor = async () => {
-        if (selectedMedia && selectedActor) {
+    const handleAddActor = async (actorName) => {
+        if (selectedMedia) {
             try {
-                console.log("Adding actor:", selectedActor.value, "to media file:", selectedMedia.id);
-                await addActorToMediaFile(selectedMedia.id, selectedActor.value);
+                await addActorToMediaFile(selectedMedia.id, actorName);
                 fetchMediaFiles();
-                setSelectedActor(null);
             } catch (error) {
                 console.error("Error adding actor:", error);
             }
         }
     };
 
-    const handleRemoveActor = async (actorToRemove) => {
+    const handleRemoveActor = async (actorName) => {
         if (selectedMedia) {
             try {
-                console.log("Removing actor:", actorToRemove, "from media file:", selectedMedia.id);
-                await removeActorFromMediaFile(selectedMedia.id, actorToRemove);
+                await removeActorFromMediaFile(selectedMedia.id, actorName);
                 fetchMediaFiles();
             } catch (error) {
                 console.error("Error removing actor:", error);
@@ -121,89 +118,39 @@ function MediaLayout() {
         }
     };
 
-    const filteredMediaFiles = mediaFiles.filter(media =>
-        media.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredMediaFiles = mediaFiles.filter(file =>
+        file.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="layout-container">
-            <div className="sidebar">
-                <ul>
-                    {filteredMediaFiles.map(media => (
-                        <li key={media.id} onClick={() => handleMediaClick(media)}>
-                            {media.name}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-            <div className="media-player">
-                {selectedMedia ? (
-                    selectedMedia.file.toLowerCase().endsWith('.mp4') ||
-                    selectedMedia.file.toLowerCase().endsWith('.mov') ||
-                    selectedMedia.file.toLowerCase().endsWith('.avi') ? (
-                        <video controls>
-                            <source src={`${EXTERNAL_MEDIA_URL}${selectedMedia.file}`} type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
-                    ) : (
-                        <img src={`${EXTERNAL_MEDIA_URL}${selectedMedia.file}`} alt={selectedMedia.name} />
-                    )
-                ) : (
-                    <p>Select a media file to play</p>
-                )}
-            </div>
-            <div className="searchbar">
-                <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                />
-                {selectedMedia && (
-                    <div className="media-details">
-                        <div>
-                            <h3>Tags:</h3>
-                            <ul>
-                                {selectedMedia.tags.map(tag => (
-                                    <li key={tag.id}>
-                                        {tag.name} <button onClick={() => handleRemoveTag(tag.name)}>Remove</button>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Select
-                                value={selectedTag}
-                                onChange={handleTagChange}
-                                options={tags}
-                                placeholder="Add tag"
-                                isClearable
-                                isSearchable
-                            />
-                            <button onClick={handleAddTag}>Add Tag</button>
-                        </div>
-                        <div>
-                            <h3>Actors:</h3>
-                            <ul>
-                                {selectedMedia.actors.map(actor => (
-                                    <li key={actor.id}>
-                                        {actor.name} <button onClick={() => handleRemoveActor(actor.name)}>Remove</button>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Select
-                                value={selectedActor}
-                                onChange={handleActorChange}
-                                options={actors}
-                                placeholder="Add actor"
-                                isClearable
-                                isSearchable
-                            />
-                            <button onClick={handleAddActor}>Add Actor</button>
-                        </div>
-                    </div>
-                )}
+        <div className="media-layout">
+            <Sidebar
+                directoryStructure={directoryStructure}
+                onMediaClick={handleMediaClick}
+            />
+            <MediaPlayer selectedMedia={selectedMedia}/>
+
+            <div className="media-content">
+                <div className="search-bar">
+                    <input
+                        type="text"
+                        placeholder="Search media..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                    />
+                    <TagActorManager
+                        selectedMedia={selectedMedia}
+                        tags={tags}
+                        actors={actors}
+                        onAddTag={handleAddTag}
+                        onRemoveTag={handleRemoveTag}
+                        onAddActor={handleAddActor}
+                        onRemoveActor={handleRemoveActor}
+                    />
+                </div>
             </div>
         </div>
     );
-}
+};
 
 export default MediaLayout;

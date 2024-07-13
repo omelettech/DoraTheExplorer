@@ -1,4 +1,7 @@
 # media/views.py
+import os
+from functools import reduce
+
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -8,6 +11,27 @@ from .serializers import MediaFileSerializer, TagSerializer, ActorSerializer
 class MediaFileViewSet(viewsets.ModelViewSet):
     queryset = MediaFile.objects.all()
     serializer_class = MediaFileSerializer
+
+    @action(detail=False)
+    def directory_structure(self, request):
+        root_directory = r'E:\Softwares\GoogleChromePortable\Data\downloads\New'
+        directory_structure = self.get_directory_structure(root_directory)
+        return Response(directory_structure)
+
+    def get_directory_structure(self, rootdir):
+        """
+        Creates a nested dictionary that represents the folder structure of rootdir
+        """
+        dir_structure = {}
+        rootdir = rootdir.rstrip(os.sep)
+        start = rootdir.rfind(os.sep) + 1
+
+        for path, dirs, files in os.walk(rootdir):
+            folders = path[start:].split(os.sep)
+            subdir = dict.fromkeys(files)
+            parent = reduce(dict.get, folders[:-1], dir_structure)
+            parent[folders[-1]] = subdir
+        return dir_structure[rootdir.split(os.sep)[-1]]
 
     @action(detail=True, methods=['post'])
     def add_tag(self, request, pk=None):
