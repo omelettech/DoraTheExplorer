@@ -133,4 +133,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media_files')
 
 # External media directory
-EXTERNAL_MEDIA_ROOT = 'E:/Softwares/GoogleChromePortable/Data/downloads/New'
+EXTERNAL_MEDIA_ROOT = r'C:\Users\amima\Downloads\TelegramDesktop'

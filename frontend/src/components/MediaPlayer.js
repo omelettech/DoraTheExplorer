@@ -6,9 +6,8 @@ const MediaPlayer = ({ selectedMedia }) => {
     if (!selectedMedia) {
         return <div className="media-player">No media selected</div>;
     }
-
-    const { file, name } = selectedMedia;
-
+    let file = selectedMedia.file
+    console.log(selectedMedia)
     return (
         <div className="media-player">
             {file.endsWith('.mp4') || file.endsWith('.avi') || file.endsWith('.mkv') || file.endsWith('.mov') ? (

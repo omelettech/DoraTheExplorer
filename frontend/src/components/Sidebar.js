@@ -20,8 +20,7 @@ function hasExtension(filepath) {
     return parts.length > 1;
 }
 
-
-const Sidebar = ({ directoryStructure, onMediaClick }) => {
+const Sidebar = ({directoryStructure, onMediaClick }) => {
     const renderDirectory = (dir, path = '') => {
         if (!dir) {
             return <div>No directory structure available</div>;
@@ -44,7 +43,7 @@ const Sidebar = ({ directoryStructure, onMediaClick }) => {
                     <div
                         key={currentPath}
                         className="file"
-                        onClick={() => onMediaClick({ name: key, file: currentPath })}
+                        onClick={() => onMediaClick({ id:dir[key]})}
                     >
                         {key}
                     </div>
